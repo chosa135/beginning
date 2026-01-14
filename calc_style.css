@@ -1,0 +1,40 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+}
+
+.calculator {
+    border: 1px solid #222;
+    padding: 10px;
+    width: 360px;
+    background-color: #555;
+}
+
+.display {
+    width: 98%;
+    height: 40px;
+    font-size: 30px;
+    text-align: right;
+    margin-bottom: 10px;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+}
+
+button {
+    height: 60px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+#yama {
+    height: 60px;
+    font-size: 40px; 
+    overflow: hidden;
+    text-align: center;
+}
