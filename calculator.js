@@ -23,6 +23,17 @@ function append(value) {
 /* ~get input */
 
 /* token class */
+const TokenType = {
+  PLUS:   'PLUS',   // 加算（+）
+  MINUS:  'MINUS',  // 減算（-）
+  MUL:    'MUL',    // 乗算（*）
+  DIV:    'DIV',    // 除算（/）
+  NUMBER: 'NUMBER', // 数値（123など）
+  LPAREN: 'LPAREN',
+  RPAREN: 'RPAREN',
+  EOF:    'EOF'
+};
+
 class Token {
   constructor(type, value = null, pos = null) {
     this.type = type;   
@@ -32,53 +43,74 @@ class Token {
 }
 
 /* lexer */
-/*
-function tokenize(input){
-  let tokens = [];
-  let index = 0;
-  while (index < input.length) {
-    const c = input[index];
-
-    if (isDigit(c)) {
-      let num_str = c;
-      index++;
-      while (index < input.length && isDigit(input[index])) {
-        num_str += input[index];
-        index++;
-      }
-      tokens.push(new Token("NUMBER", num_str, index));
-
-    } else if (c === '+') {
-      tokens.push(new Token("Plus", null, index));
-      index++;
-    } else if (c === '-') {
-      tokens.push(new Token("Minus", null, index));
-      index++;
-    } else if (c === '*') {
-      tokens.push(new Token("Star", null, index));
-      index++;
-    } else if (c === '/') {
-      tokens.push(new Token("Slash", null, index));
-      index++;
-    } else if (c === '(') {
-      tokens.push(new Token("LPAREN", null, index));
-      index++;
-    } else if (c === ')') {
-      tokens.push(new Token("RPAREN", null, index));
-      index++;
-    } else if (c === ' ') {
-      index++;
-    } else {
-      tokens = [(new Token("INVALID", null, index))];
-      return tokens;
-    } 
-  }
-  tokens.push(new Token("EOF", null, index));
-  return tokens;
-}
-*/
-
+/* lexer */
 class Tokenizer {
+  constructor(input) {
+    this.input = input;
+    this.index = 0;
+    this.tokens = [];
+  }
+  current() {
+    return this.input[this.index];
+  }
+  advance() {
+    return this.input[this.index++];
+  }
+
+  tokenize() {
+    while (this.index < this.input.length) {
+      const c = this.current();
+
+      if (isDigit(c)) {
+        let lexeme = '';
+        let sawDot = false;
+        while (isDigit(this.current()) || (this.current() === '.' && !sawDot)) {
+          if (this.current() === '.') sawDot = true;
+          lexeme += this.advance();
+        }
+
+        this.tokens.push(
+          new Token(TokenType.NUMBER, lexeme, this.index)
+        );
+
+      } else if (c === '+') {
+        this.tokens.push(new Token(TokenType.PLUS, null, this.index));
+        this.advance();
+
+      } else if (c === '-') {
+        this.tokens.push(new Token(TokenType.MINUS, null, this.index));
+        this.advance();
+
+      } else if (c === '*') {
+        this.tokens.push(new Token(TokenType.MUL, null, this.index));
+        this.advance();
+
+      } else if (c === '/') {
+        this.tokens.push(new Token(TokenType.DIV, null, this.index));
+        this.advance();
+
+      } else if (c === '(') {
+        this.tokens.push(new Token(TokenType.LPAREN, null, this.index));
+        this.advance();
+
+      } else if (c === ')') {
+        this.tokens.push(new Token(TokenType.RPAREN, null, this.index));
+        this.advance();
+
+      } else if (c === ' ') {
+        this.advance();
+
+      } else {
+        throw new Error("calc: invalid input");
+      }
+    }
+    this.tokens.push(new Token(TokenType.EOF, null, this.index));
+    return this.tokens;
+  }
+}
+
+
+class OldTokenizer {
   constructor(input) {
     this.input = input;
     this.index = 0;
@@ -91,52 +123,62 @@ class Tokenizer {
 
       /* number */
       if (isDigit(c)) {
-        let num_str = c;
+        let lexeme = c;
+        let sawDot = false;
+
         this.index++;
-        while (
-          this.index < this.input.length &&
-          isDigit(this.input[this.index])
-        ) {
-          num_str += this.input[this.index];
-          this.index++;
+
+        while (this.index < this.input.length) {
+          if (isDigit(this.input[this.index])){
+            lexeme += this.input[this.index];
+            this.index++;
+          } else if (this.input[this.index] === '.' && !sawDot) {
+            sawDot = true;
+            lexeme += this.input[this.index];
+            this.index++;
+          } else {
+            break;
+          }
         }
+
+
         this.tokens.push(
-          new Token("NUMBER", num_str, this.index)
+          new Token(TokenType.NUMBER, lexeme, this.index)
         );
 
       } else if (c === '+') {
-        this.tokens.push(new Token("PLUS", null, this.index));
+        this.tokens.push(new Token(TokenType.PLUS, null, this.index));
         this.index++;
 
       } else if (c === '-') {
-        this.tokens.push(new Token("MINUS", null, this.index));
+        this.tokens.push(new Token(TokenType.MINUS, null, this.index));
         this.index++;
 
       } else if (c === '*') {
-        this.tokens.push(new Token("STAR", null, this.index));
+        this.tokens.push(new Token(TokenType.MUL, null, this.index));
         this.index++;
 
       } else if (c === '/') {
-        this.tokens.push(new Token("SLASH", null, this.index));
+        this.tokens.push(new Token(TokenType.DIV, null, this.index));
         this.index++;
 
       } else if (c === '(') {
-        this.tokens.push(new Token("LPAREN", null, this.index));
+        this.tokens.push(new Token(TokenType.LPAREN, null, this.index));
         this.index++;
 
       } else if (c === ')') {
-        this.tokens.push(new Token("RPAREN", null, this.index));
+        this.tokens.push(new Token(TokenType.RPAREN, null, this.index));
         this.index++;
 
       } else if (c === ' ') {
         this.index++;
 
       } else {
-        return [new Token("INVALID", null, this.index)];
+        throw new Error("calc: invalid input");
       }
     }
 
-    this.tokens.push(new Token("EOF", null, this.index));
+    this.tokens.push(new Token(TokenType.EOF, null, this.index));
     return this.tokens;
   }
 }
@@ -155,6 +197,9 @@ class Expr {
     }
   }
 
+  eval(){
+    throw new Error("calc: eval not implemented");
+  }
   toString(){
     throw new Error("calc: toString not implemented");
   }
@@ -165,13 +210,33 @@ class NumberExpr extends Expr{
     super();
     this.num = num;
   }
+  eval(){
+    return this.num
+  }
 }
+
 class BinaryExpr extends Expr{
-  constructor(op, left, right) {
+  constructor(operator, left, right) {
     super();
-    this.op = op;
+    this.operator = operator;
     this.left = left;
     this.right = right;
+  }
+  eval() {
+    const l = this.left.eval();
+    const r = this.right.eval();
+    switch (this.operator) {
+      case TokenType.PLUS:
+        return l + r;
+      case TokenType.MINUS:
+        return l - r;
+      case TokenType.MUL:
+        return l * r;
+      case TokenType.DIV:
+        return l / r;
+      default:
+        throw new Error("unknown operator");
+    }
   }
 }
 
@@ -198,7 +263,7 @@ class Parser {
     while (true) {
       const token = this.current();
 
-      if (token.type === 'PLUS' || token.type === 'MINUS') {
+      if (token.type === TokenType.PLUS || token.type === TokenType.MINUS) {
         this.advance();
         const right = this.parseTerm();
         expr = new BinaryExpr(token.type, expr, right);
@@ -213,7 +278,7 @@ class Parser {
     let expr = this.parseFactor();
     while (true) {
       const token = this.current();
-      if (token.type === 'STAR' || token.type === 'SLASH') {
+      if (token.type === TokenType.MUL || token.type === TokenType.DIV) {
         this.advance();
         const right = this.parseFactor();
         expr = new BinaryExpr(token.type, expr, right);
@@ -226,16 +291,16 @@ class Parser {
 
   parseFactor() {
     const token = this.current();
-    
-    if (token.type == 'NUMBER') {
+
+    if (token.type == TokenType.NUMBER) {
       this.advance();
       return new NumberExpr(Number(token.value));
     }
 
-    if (token.type === 'LPAREN') {
+    if (token.type === TokenType.LPAREN) {
       this.advance();                 // '(' を食う
       const expr = this.parseExpression();
-      if (this.current().type !== 'RPAREN') {
+      if (this.current().type !== TokenType.RPAREN) {
         throw new Error("calc: expected ')'");
       }
       this.advance();                 // ')' を食う
@@ -245,14 +310,19 @@ class Parser {
     throw new Error("calc: expected factor");
   }
 }
-
 /* ~parsers */
 
-function go(input){
-  const t = new Tokenizer(input);
+/*evaluator*/
+function go(str){
+  const t = new Tokenizer(str);
   const a = new Parser(t.tokenize());
-  return a.parseExpression(); 
+  const ast  = a.parseExpression();
+  const ans = ast.eval()
+  console.log(ast)
+  return Number(ans.toPrecision(10));
 }
+
+/* ~evaluator*/
 
 function clearDisplay() {
   display.value = '';
