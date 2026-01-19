@@ -7,36 +7,39 @@
 </head>
 
 <body>
-  <div class="calculator">
-    <input type="text" id="display" class="display" readonly>
+  <div class="container>">
+    <div class="calculator">
+      <input type="text" id="display" class="display" readonly>
 
-    <div class="buttons">
-      <button data-value="7">7</button>
-      <button data-value="8">8</button>
-      <button data-value="9">9</button>
-      <button data-value="/">÷</button>
+      <div class="buttons">
+        <button data-value="7">7</button>
+        <button data-value="8">8</button>
+        <button data-value="9">9</button>
+        <button data-value="/">÷</button>
 
-      <button data-value="4">4</button>
-      <button data-value="5">5</button>
-      <button data-value="6">6</button>
-      <button data-value="*">×</button>
+        <button data-value="4">4</button>
+        <button data-value="5">5</button>
+        <button data-value="6">6</button>
+        <button data-value="*">×</button>
 
-      <button data-value="1">1</button>
-      <button data-value="2">2</button>
-      <button data-value="3">3</button>
-      <button data-value="-">−</button>
+        <button data-value="1">1</button>
+        <button data-value="2">2</button>
+        <button data-value="3">3</button>
+        <button data-value="-">−</button>
 
-      <button data-value="0">0</button>
-      <button data-value=".">.</button>
-      <button data-action="clear">C</button>
-      <button data-value="+">＋</button>
+        <button data-value="0">0</button>
+        <button data-value=".">.</button>
+        <button data-action="clear">C</button>
+        <button data-value="+">＋</button>
 
-      <button data-value="(">(</button>
-      <button data-value=")">)</button>
-      <button data-action="calculate" style="grid-column: span 2;">＝</button>
+        <button data-value="(">(</button>
+        <button data-value=")">)</button>
+        <button data-action="calculate" style="grid-column: span 2;">＝</button>
+      </div>
     </div>
   </div>
-
+  <br>
+  <div>未実装：負の数、括弧、小数、キー入力</div>
   <script src="calculator.js"></script>
 <!--
   <script>
