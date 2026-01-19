@@ -44,13 +44,14 @@ class Token {
 
 /* lexer */
 /* lexer */
+
 class Tokenizer {
   constructor(input) {
     this.input = input;
     this.index = 0;
     this.tokens = [];
   }
-  current() {
+  peek() {
     return this.input[this.index];
   }
   advance() {
@@ -59,130 +60,58 @@ class Tokenizer {
 
   tokenize() {
     while (this.index < this.input.length) {
-      const c = this.current();
+      const c = this.advance();
 
-      if (isDigit(c)) {
-        let lexeme = '';
-        let sawDot = false;
-        while (isDigit(this.current()) || (this.current() === '.' && !sawDot)) {
-          if (this.current() === '.') sawDot = true;
+
+      if (
+        // ".3"のような表記を許容 
+        isDigit(c) || 
+        (c === '.' && isDigit(this.peek()))) {
+        let lexeme = c;
+        let sawDot = c === '.';
+        while (isDigit(this.peek()) || (this.peek() === '.' && !sawDot)) {
+          if (this.peek() === '.') sawDot = true;
           lexeme += this.advance();
         }
-
         this.tokens.push(
           new Token(TokenType.NUMBER, lexeme, this.index)
         );
 
       } else if (c === '+') {
         this.tokens.push(new Token(TokenType.PLUS, null, this.index));
-        this.advance();
+        //this.advance();
 
       } else if (c === '-') {
         this.tokens.push(new Token(TokenType.MINUS, null, this.index));
-        this.advance();
+        //this.advance();
 
       } else if (c === '*') {
         this.tokens.push(new Token(TokenType.MUL, null, this.index));
-        this.advance();
+        //this.advance();
 
       } else if (c === '/') {
         this.tokens.push(new Token(TokenType.DIV, null, this.index));
-        this.advance();
+        //this.advance();
 
       } else if (c === '(') {
         this.tokens.push(new Token(TokenType.LPAREN, null, this.index));
-        this.advance();
+        //this.advance();
 
       } else if (c === ')') {
         this.tokens.push(new Token(TokenType.RPAREN, null, this.index));
-        this.advance();
+        //this.advance();
 
       } else if (c === ' ') {
-        this.advance();
+        //this.advance();
 
       } else {
-        throw new Error("calc: invalid input");
+        throw new Error("[calc]invalid input");
       }
     }
     this.tokens.push(new Token(TokenType.EOF, null, this.index));
     return this.tokens;
   }
 }
-
-
-class OldTokenizer {
-  constructor(input) {
-    this.input = input;
-    this.index = 0;
-    this.tokens = [];
-  }
-
-  tokenize() {
-    while (this.index < this.input.length) {
-      const c = this.input[this.index];
-
-      /* number */
-      if (isDigit(c)) {
-        let lexeme = c;
-        let sawDot = false;
-
-        this.index++;
-
-        while (this.index < this.input.length) {
-          if (isDigit(this.input[this.index])){
-            lexeme += this.input[this.index];
-            this.index++;
-          } else if (this.input[this.index] === '.' && !sawDot) {
-            sawDot = true;
-            lexeme += this.input[this.index];
-            this.index++;
-          } else {
-            break;
-          }
-        }
-
-
-        this.tokens.push(
-          new Token(TokenType.NUMBER, lexeme, this.index)
-        );
-
-      } else if (c === '+') {
-        this.tokens.push(new Token(TokenType.PLUS, null, this.index));
-        this.index++;
-
-      } else if (c === '-') {
-        this.tokens.push(new Token(TokenType.MINUS, null, this.index));
-        this.index++;
-
-      } else if (c === '*') {
-        this.tokens.push(new Token(TokenType.MUL, null, this.index));
-        this.index++;
-
-      } else if (c === '/') {
-        this.tokens.push(new Token(TokenType.DIV, null, this.index));
-        this.index++;
-
-      } else if (c === '(') {
-        this.tokens.push(new Token(TokenType.LPAREN, null, this.index));
-        this.index++;
-
-      } else if (c === ')') {
-        this.tokens.push(new Token(TokenType.RPAREN, null, this.index));
-        this.index++;
-
-      } else if (c === ' ') {
-        this.index++;
-
-      } else {
-        throw new Error("calc: invalid input");
-      }
-    }
-
-    this.tokens.push(new Token(TokenType.EOF, null, this.index));
-    return this.tokens;
-  }
-}
-
 function isDigit(c) {
   return c >= '0' && c <= '9';
 }
@@ -193,15 +122,15 @@ function isDigit(c) {
 class Expr {
   constructor() {
     if (new.target === Expr) {
-      throw new Error("calc: Expr is abstract");
+      throw new Error("[calc]Expr is abstract");
     }
   }
 
   eval(){
-    throw new Error("calc: eval not implemented");
+    throw new Error("[calc]eval not implemented");
   }
   toString(){
-    throw new Error("calc: toString not implemented");
+    throw new Error("[calc]toString not implemented");
   }
 }
 
@@ -214,6 +143,24 @@ class NumberExpr extends Expr{
     return this.num
   }
 }
+
+class UnaryExpr extends Expr{
+  constructor(operator, expr) {
+    super();
+    this.operator = operator;
+    this.expr = expr;
+  }
+  eval() {
+    const v = this.expr.eval();
+    switch (this.operator) {
+      case TokenType.MINUS:
+        return -v;
+      default:
+        throw new Error("unknown operator");
+    }
+  }
+}
+
 
 class BinaryExpr extends Expr{
   constructor(operator, left, right) {
@@ -292,6 +239,12 @@ class Parser {
   parseFactor() {
     const token = this.current();
 
+    if (token.type == TokenType.MINUS) {
+      this.advance();
+      const expr = this.parseFactor();
+      return new UnaryExpr(TokenType.MINUS, expr);
+    }
+
     if (token.type == TokenType.NUMBER) {
       this.advance();
       return new NumberExpr(Number(token.value));
@@ -301,13 +254,13 @@ class Parser {
       this.advance();                 // '(' を食う
       const expr = this.parseExpression();
       if (this.current().type !== TokenType.RPAREN) {
-        throw new Error("calc: expected ')'");
+        throw new Error("[calc]expected ')'");
       }
       this.advance();                 // ')' を食う
       return expr;
     }
 
-    throw new Error("calc: expected factor");
+    throw new Error("[calc]expected factor");
   }
 }
 /* ~parsers */
