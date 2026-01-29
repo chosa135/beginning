@@ -281,13 +281,17 @@ function clearDisplay() {
   display.value = '';
 }
 
-function calculate() {
-  return 0;
-  /*
-  try {
-    display.value = eval(display.value);
-  } catch (e) {
-    display.value = 'エラー';
-  }
-    */
+
+function calculate(){
+  const t = new Tokenizer(display.value);
+  const a = new Parser(t.tokenize());
+  const ast  = a.parseExpression();
+  const ans = ast.eval()
+  console.log(ast)
+
+  const f = Number(ans.toPrecision(10));
+  console.log(f)
+  display.value = f;
+  return Number(ans.toPrecision(10));
 }
+
