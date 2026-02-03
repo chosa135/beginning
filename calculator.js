@@ -17,6 +17,47 @@ buttons.forEach(button => {
   });
 });
 
+window.addEventListener('keydown', (event) => {
+  const key = event.key;
+  function deleteLastCharacter(){
+    display.value = display.value.slice(0, -1);
+  }
+
+  if (/^[0-9]$/.test(key) || ['+', '-', '*', '/', '.', '(', ')'].includes(key)) {
+    display.value += key;
+  }
+  else if (key === 'Backspace') {
+    deleteLastCharacter(); 
+  }
+  else if (key === 'Enter' || key === '=') {
+    calculate();
+  }
+  else if (key === 'c' || key === '!') {
+    clearDisplay();
+  }
+});
+/*
+window.addEventListener('keydown', (event) => {
+  const key = event.key;
+
+  // 数字キー (0-9) の場合
+  if (/[0-9]/.test(key)) {
+    appendNumber(key); 
+  }
+  // 演算子 (+, -, *, /) の場合
+  else if (['+', '-', '*', '/'].includes(key)) {
+    setOperator(key);
+  }
+  // 計算実行 (Enter または =) の場合
+  else if (key === 'Enter' || key === '=') {
+    calculate();
+  }
+  // 消去 (Escape または Backspace) の場合
+  else if (key === 'Escape') {
+    clearDisplay();
+  }
+});
+*/
 function append(value) {
   display.value += value;
 }
@@ -278,13 +319,12 @@ function go(str){
 /* ~evaluator*/
 
 function clearDisplay() {
+  console.log('display cleared')
   display.value = '';
 }
-
-
 function calculate(){
-  const t = new Tokenizer(display.value);
-  const a = new Parser(t.tokenize());
+  const tok = new Tokenizer(display.value);
+  const a = new Parser(tok.tokenize());
   const ast  = a.parseExpression();
   const ans = ast.eval()
   console.log(ast)
