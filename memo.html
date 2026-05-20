@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>簡易メモ帳</title>
+    <style>
+        body {
+          padding: 20px; 
+          font-family: sans-serif; 
+          background-color: #eee;
+        }
+        textarea { 
+          width: 100%; 
+          height: 780px; 
+          padding: 10px;
+          box-sizing: border-box; 
+          font-size: 16px;   /* 文字の大きさじゃ！ */
+          line-height: 1.5;  /* 行の間隔も広げて読みやすくしたぞ */
+          border: 2px solid #ccc;
+          border-radius: 8px;}
+        .status { font-size: 0.8em; color: #55d; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <h3>簡易メモ帳</h3>
+    <textarea id="memoField" placeholder="..."></textarea>
+    <div id="status" class="status"></div>
+
+    <script>
+        const memoField = document.getElementById('memoField');
+        const status = document.getElementById('status');
+
+        // 1. ページを開いた時、保存されている内容を読み込む
+        const savedData = localStorage.getItem('my_memo');
+        if (savedData) {
+            memoField.value = savedData;
+            status.textContent = 'loaded';
+        }
+
+        // 2. 文字が入力されるたびに、localStorageに保存する
+        memoField.addEventListener('input', () => {
+            localStorage.setItem('my_memo', memoField.value);
+            status.textContent = 'saved';
+        });
+    </script>
+
+</body>
+</html>
